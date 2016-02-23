@@ -6,11 +6,16 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
@@ -41,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     ArrayList<Double> saniyelikMesurement = new ArrayList<>();
     ArrayList<Double> saniyelikMesafe = new ArrayList<>();
     ArrayList<ArrayList<Double>> accValueMap = new ArrayList<>();
-
+    JSONArray dataJsonArr = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -60,7 +65,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             System.out.println(e);
         }
 
+        JsonParser jParser = new JsonParser();
 
+        // get json string from url
+
+        // get the array of users
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        try {
+            JSONObject json = jParser.getJSONFromUrl("http://10.37.151.198:8080/a/rest/json/metallica/get?id=46461463");
+            //           JSONObject json = jParser.getJSONFromUrl("http://10.0.2.2:8080/a/rest/json/metallica/get?id=46461463");
+
+            dataJsonArr = json.getJSONArray("Users");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+        }
 
 
     }
