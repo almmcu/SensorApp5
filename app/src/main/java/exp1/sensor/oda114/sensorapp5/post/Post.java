@@ -1,6 +1,7 @@
-package exp1.sensor.oda114.sensorapp5.service;
+package exp1.sensor.oda114.sensorapp5.post;
 
-import android.util.Log;
+
+import com.google.gson.Gson;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -8,14 +9,13 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.HTTP;
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
-import exp1.sensor.oda114.sensorapp5.post.Value;
 
 /**
  * Created by ali on 4/25/2014.
@@ -23,12 +23,28 @@ import exp1.sensor.oda114.sensorapp5.post.Value;
 public class Post {
 
 
+    public static void main(String[] args) {
+        Post post = new Post();
+        Value word = new Value();
+        word.setTimeInterval("erisim");
+        word.setAccelerometer("id");
 
+
+        Value word2 = new Value();
+        word2.setAccelerometer("erisim2");
+        word2.setTimeInterval("id2");
+        ;
+        ArrayList<Value> wordArrayList = new ArrayList<Value>();
+        wordArrayList.add(word);
+        wordArrayList.add(word2);
+        post.post("http://localhost:9090/jaxrs/students/answer/post", wordArrayList );
+    }
     public Post() {
+
     }
 
 
-    public  String post(String url, Value word){
+    public  String post(String url, ArrayList<Value> words){
         InputStream inputStream = null;
         String result = "";
         try {
@@ -41,16 +57,9 @@ public class Post {
             HttpPost httpPost = new HttpPost(url);
 
             String json = "";
-
-            // 3. build jsonObject
-            JSONObject jsonObject = new JSONObject();
-
-            // 4. convert JSONObject to JSON to String
-            json = jsonObject.toString();
-
-            // ** Alternative way to convert Person object to JSON string usin Jackson Lib
-            // ObjectMapper mapper = new ObjectMapper();
-            // json = mapper.writeValueAsString(person);
+            Values wordss = new Values();
+            wordss.setWords(words);
+            json = new Gson().toJson(wordss);
 
             // 5. set json to StringEntity
             StringEntity se = new StringEntity(json, HTTP.UTF_8);
@@ -74,7 +83,7 @@ public class Post {
                 result = "Did not work!";
 
         } catch (Exception e) {
-            Log.d("InputStream", e.getLocalizedMessage());
+            System.out.println("InputStream" + e.getLocalizedMessage());
         }
 
         // 11. return result

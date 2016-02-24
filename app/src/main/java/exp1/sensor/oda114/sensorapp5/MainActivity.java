@@ -5,6 +5,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +13,7 @@ import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,6 +21,11 @@ import org.json.JSONObject;
 
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Calendar;
+
+import exp1.sensor.oda114.sensorapp5.post.Person;
+import exp1.sensor.oda114.sensorapp5.post.Post;
+import exp1.sensor.oda114.sensorapp5.post.Value;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -38,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     long dif = 0;
     int a = 0;
     int mapIndex = 0;
-
+    private TransparentProgressDialog pd;
     double mesafe = 0;
     Button btn ;
     int cal = 0 ;
@@ -47,11 +54,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     ArrayList<Double> saniyelikMesafe = new ArrayList<>();
     ArrayList<ArrayList<Double>> accValueMap = new ArrayList<>();
     JSONArray dataJsonArr = null;
+    Value value;
+    ArrayList<Value> valueArrayList = new ArrayList<Value>();
+    ArrayList<Double> ivmeDegerBirOlcumList = new ArrayList<>();
+    ArrayList<Double> saniyeDegerBirOlcumList = new ArrayList<>();
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        pd = new TransparentProgressDialog(this, R.drawable.spinner_2);
         try {
             sMgr = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
             mLineerAccSensor = sMgr.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
@@ -65,22 +79,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             System.out.println(e);
         }
 
-        JsonParser jParser = new JsonParser();
 
-        // get json string from url
-
-        // get the array of users
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-        try {
-            JSONObject json = jParser.getJSONFromUrl("http://10.37.151.198:8080/a/rest/json/metallica/get?id=46461463");
-            //           JSONObject json = jParser.getJSONFromUrl("http://10.0.2.2:8080/a/rest/json/metallica/get?id=46461463");
-
-            dataJsonArr = json.getJSONArray("Users");
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(e);
-        }
 
 
     }
@@ -92,35 +91,53 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
     }
+    double degisken=100;
+
     public void onSensorChanged(SensorEvent event) {
         long temp = System.currentTimeMillis();
-
-        long timediff = temp - currentTimeinMilisecoond;
+        temp=temp%1000;
+        //int x=Calendar.getInstance().get(Calendar.MILLISECOND);
         Sensor sensor = event.sensor;
-        if (timediff >= 10){
-
+        if(temp>degisken & temp < degisken+100 )
+        {
             if (sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
                 float angularXSpeed = event.values[0];
                 float angularYSpeed = event.values[1];
                 float angularZSpeed = event.values[2];//
+                value = new Value();
+                value.setAccelerometer(String.format("%.8f", (double)angularXSpeed ) );
+                //value.setTimeInterval(String.format("%.8f", (double) timediff/1000));
+                valueArrayList.add(value);
+            degisken +=100;
 
-          /*  if (angularXMaxSpeed < angularXSpeed) angularXMaxSpeed = angularXSpeed;
+        }
+
+
+        long timediff = temp - currentTimeinMilisecoond;
+
+
+
+       /* if (timediff >= 100){
+
+
+
+          *//*  if (angularXMaxSpeed < angularXSpeed) angularXMaxSpeed = angularXSpeed;
             if (angularYMaxSpeed < angularYSpeed) angularYMaxSpeed = angularYSpeed;
-            if (angularZMaxSpeed < angularZSpeed) angularZMaxSpeed = angularZSpeed;*/
+            if (angularZMaxSpeed < angularZSpeed) angularZMaxSpeed = angularZSpeed;*//*
 
 
-            /*if (angularXSpeed < 0.150) angularXSpeed = 0 ;
+            *//*if (angularXSpeed < 0.150) angularXSpeed = 0 ;
             if (angularYSpeed < 0.270) angularYSpeed = 0 ;
-            if (angularZSpeed < 0.2) angularZSpeed = 0 ;*/
-          /*  double b = (0.5 * angularXSpeed * 0.1 * 0.1/4);
+            if (angularZSpeed < 0.2) angularZSpeed = 0 ;*//*
+          *//*  double b = (0.5 * angularXSpeed * 0.1 * 0.1/4);
             if (b< 0) b = -b;
-            a += ( b / 1000) ;*/
+            a += ( b / 1000) ;*//*
 
                 tv.setText("Angular X speed level is: " + "" + angularXSpeed + "\n\n"
                                 + "Angular Y speed level is: " + "" + angularYSpeed + "\n\n"
                                 + "Angular Z speed level is: " + "" + angularZSpeed
                                 + "\n\n"
-/*
+*//*
                             "Angular X speed level is: " + "" + angularXMaxSpeed + "\n\n"
                             // 0.033320963 -
                             + "Angular Y speed level is: " + "" + angularYMaxSpeed + "\n\n"
@@ -129,11 +146,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                             + "\n\n\n\n\n\n" +
                     ( a )
-                    // 0.060460567 -*/
+                    // 0.060460567 -*//*
 
 
                 );
 
+
+               // ivmeDegerBirOlcumList.add((double) angularXSpeed);// göndermek için alınan ivme değerleri
+              //  saniyeDegerBirOlcumList.add((double) timediff);// göndermek için alınan ivme değerleri
 
 
                 saniyelik.add( (double) angularXSpeed);
@@ -168,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     System.out.println(accValueMap);
                 }
                 currentTimeinMilisecoond = System.currentTimeMillis();
-            }
+            }*/
         }
        /* else if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
             float angularXGyro = event.values[0];
@@ -221,6 +241,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             saniyelikMesafe.clear();
             mesafe = 0;
             mapIndex = 0;
+            System.out.println(valueArrayList);
+            LongOperation mytask = null;
+            mytask = new LongOperation();
+            mytask.execute();
 
         }
 
@@ -246,6 +270,39 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             sMgr.unregisterListener((SensorEventListener) this);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private class LongOperation extends AsyncTask<String, Void, String>
+    {
+        protected void onPreExecute()
+        {
+
+            pd.show();
+
+        }
+
+        protected String doInBackground(String... params)
+        {
+            try
+            {
+                Post post = new Post();
+                //post.post("http://localhost:9090/jaxrs/students/answer/post",valueArrayList);
+                post.post("http://10.37.151.198:9090/jaxrs/students/answer/post",valueArrayList);
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+        protected void onPostExecute(String result)
+        {
+            /*if(result_gelen.equals("Person saved : "))
+                Toast.makeText(getApplication(), "Successfuly Signed Up", Toast.LENGTH_SHORT).show();
+
+            else Toast.makeText(getApplication(),"There was a mistake when signing up..",Toast.LENGTH_SHORT).show();*/
+
+            pd.dismiss();
         }
     }
 }
