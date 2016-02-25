@@ -41,8 +41,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float angularYMaxSpeed = 0;
     float angularZMaxSpeed = 0;
     OutputStreamWriter outputStreamWriter;
-    long currentTimeinMilisecoond;
+    long currentTimeinMilisecoond =0;
+    long gecenZamanMiliSecond = 0;
     long dif = 0;
+    long timeStart = 0;
+    long timeEnd = 0;
     int a = 0;
     int mapIndex = 0;
     private TransparentProgressDialog pd;
@@ -58,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     ArrayList<Value> valueArrayList = new ArrayList<Value>();
     ArrayList<Double> ivmeDegerBirOlcumList = new ArrayList<>();
     ArrayList<Double> saniyeDegerBirOlcumList = new ArrayList<>();
-
+int sayac = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,27 +98,38 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     public void onSensorChanged(SensorEvent event) {
         long temp = System.currentTimeMillis();
-        temp=temp%1000;
-        //int x=Calendar.getInstance().get(Calendar.MILLISECOND);
         Sensor sensor = event.sensor;
-        if(temp>degisken & temp < degisken+100 )
-        {
-            if (sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
+
+        long timediff = temp - currentTimeinMilisecoond;
+            if (sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION && sayac != 0 ) {
                 float angularXSpeed = event.values[0];
                 float angularYSpeed = event.values[1];
                 float angularZSpeed = event.values[2];//
+                gecenZamanMiliSecond +=timediff;
+                tv.setText("Angular X speed level is: " + "" + angularXSpeed + "\n\n");
                 value = new Value();
-                value.setAccelerometer(String.format("%.8f", (double)angularXSpeed ) );
-                //value.setTimeInterval(String.format("%.8f", (double) timediff/1000));
+                value.setAccelerometer(String.format("%.8f", (double) angularXSpeed));
+                value.setTimeInterval(String.format("%.8f", (double) (gecenZamanMiliSecond) / 1000) + " " + String.format("%.8f", (double) (timediff) / 1000));
                 valueArrayList.add(value);
-            degisken +=100;
 
-        }
-
-
-        long timediff = temp - currentTimeinMilisecoond;
+            }
 
 
+       /* long timediff = temp - currentTimeinMilisecoond;
+            if (timediff >= 5 && sayac != 0){
+                gecenZamanMiliSecond +=timediff;
+                if (sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
+                    float angularXSpeed = event.values[0];
+                    float angularYSpeed = event.values[1];
+                    float angularZSpeed = event.values[2];//
+                    value = new Value();
+                    value.setAccelerometer(String.format("%.8f", (double)angularXSpeed ) );
+                    value.setTimeInterval(String.format("%.8f", (double) ( gecenZamanMiliSecond)/1000) + " " + String.format("%.8f", (double) ( timediff)/1000));
+                    valueArrayList.add(value);
+            }
+            }*/
+        sayac ++;
+            currentTimeinMilisecoond = System.currentTimeMillis();
 
        /* if (timediff >= 100){
 
@@ -189,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
                 currentTimeinMilisecoond = System.currentTimeMillis();
             }*/
-        }
+
        /* else if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
             float angularXGyro = event.values[0];
             float angularYGyro = event.values[1];
@@ -206,8 +220,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         {
             btn.setText("Bitir");
             sMgr.registerListener(this, mLineerAccSensor, SensorManager.SENSOR_DELAY_NORMAL);
+            timeStart = System.currentTimeMillis();
+
         }
         else {
+            timeEnd = System.currentTimeMillis();
+            sayac = 0;
             btn.setText("Basla");
             sMgr.unregisterListener((SensorEventListener) this);
             tv2.setText("\n\nSon mesafe   " +mesafe
@@ -288,6 +306,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             {
                 Post post = new Post();
                 //post.post("http://localhost:9090/jaxrs/students/answer/post",valueArrayList);
+                Value value = new Value();
+                value.setTimeInterval(String.format("%.8f", (double)  (timeEnd - timeStart) /1000 ) );
+                value.setAccelerometer("00,00");
+                valueArrayList.add(value);
                 post.post("http://10.37.151.198:9090/jaxrs/students/answer/post",valueArrayList);
             }
             catch (Exception e) {
@@ -301,7 +323,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 Toast.makeText(getApplication(), "Successfuly Signed Up", Toast.LENGTH_SHORT).show();
 
             else Toast.makeText(getApplication(),"There was a mistake when signing up..",Toast.LENGTH_SHORT).show();*/
-
+valueArrayList.clear();
+            gecenZamanMiliSecond = 0;
             pd.dismiss();
         }
     }
